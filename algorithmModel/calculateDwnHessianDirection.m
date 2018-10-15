@@ -1,5 +1,5 @@
 function [ hessianDir, details] = calculateDwnHessianDirection(dwnOptimModel, treeData,...
-     dwnFactorStepModel, dualDir)
+    dualDir, dwnFactorStepModel)
 % This function is the oracle that calculate the hessian-direction product for the dual fbe-envelop 
 % for the smpc optimisaiton problem for the DWN. This step uses the offline matrices from the factor step   
 % 
@@ -18,7 +18,7 @@ function [ hessianDir, details] = calculateDwnHessianDirection(dwnOptimModel, tr
 %   hessianDir  : X states 
 %               : U control/Input
 %  details   :
-%
+%   calculateDwnSolveStep(dwnOptimModel, treeData, dualY, dwnFactorStepModel, xInitialState, optionSolveStep)
 
 nNode = size(treeData.stage, 1);% total number of nodes including leaves 
 nLeave = size(treeData.leaves, 1);% total number of leaves

@@ -77,7 +77,7 @@ else
         dwnOptimCost, optionPrecondition);
     detailsPrecond.norm = detailsDwnHessianPrecondTemp.norm;
     diagDualHessianTemp = diag(diag(dwnDualHessianTemp).^(-0.5));
-    
+    %diagDualHessianTemp = eye(size(dwnDualHessianTemp, 1));
     prob = sqrt(treeData.prob);
     dwnOptimModelPrecond = dwnOptimModel;
     

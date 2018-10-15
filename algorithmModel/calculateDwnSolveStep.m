@@ -1,5 +1,5 @@
-function [ Z, details] = calculateDwnSolveStep(dwnOptimModel, treeData,...
-    dwnFactorStepModel, dualY, xInitialState, optionSolveStep)
+function [ dwnSmpcZvar, details] = calculateDwnSolveStep(dwnOptimModel, treeData,...
+    dualY, dwnFactorStepModel, xInitialState, optionSolveStep)
 % This function calcualte the dual gradient for the smpc optimisaiton problem for the 
 % DWN. This step uses the offline matrices from the factor step   
 % 
@@ -13,17 +13,17 @@ function [ Z, details] = calculateDwnSolveStep(dwnOptimModel, treeData,...
 %   xInitialState     :  x_0 = p; v_{-1} = q; \hat{v}_{-1} = \hat{q};
 %
 % OUTPUT 
-%   Z        : X states 
-%            : U control/Input
-%  details   :
+%   dwnSmpcZvar  : X states 
+%                : U control/Input
+%  details  :
 %
 
 nNode = size(treeData.stage, 1);% total number of nodes including leaves 
 nLeave = size(treeData.leaves, 1);% total number of leaves
 nv = size(dwnOptimModel.L, 2);
 
-Z.X = zeros(dwnOptimModel.nx, nNode + 1);
-Z.U = zeros(dwnOptimModel.nu, nNode);
+dwnSmpcZvar.X = zeros(dwnOptimModel.nx, nNode + 1);
+dwnSmpcZvar.U = zeros(dwnOptimModel.nu, nNode);
 v = zeros(nv, nNode);
 
 q = zeros(dwnOptimModel.nx, nNode + 1);
@@ -76,21 +76,21 @@ for k = dwnOptimModel.Np:-1:1
 end
 
 details.v = v;
-Z.X(:, 1) = xInitialState;
+dwnSmpcZvar.X(:, 1) = xInitialState;
 
 for kk = 1:nNode-nLeave + 1
     if(kk == 1)
         v(:, kk) = dwnFactorStepModel.K{kk, 1}*optionSolveStep.v + v(:, kk);
-        Z.U(:, kk) = dwnOptimModel.L*v(:, kk) + optionSolveStep.vhat(:, kk);
-        Z.X(:,kk + 1) = dwnOptimModel.A*Z.X(:, 1) + dwnOptimModel.B*Z.U(:, kk) + ...
+        dwnSmpcZvar.U(:, kk) = dwnOptimModel.L*v(:, kk) + optionSolveStep.vhat(:, kk);
+        dwnSmpcZvar.X(:,kk + 1) = dwnOptimModel.A*dwnSmpcZvar.X(:, 1) + dwnOptimModel.B*dwnSmpcZvar.U(:, kk) + ...
             optionSolveStep.w(:, kk);
     else
         nChild = treeData.children{kk-1};
         for l = 1:length(nChild)
             v(:, nChild(l)) = dwnFactorStepModel.K{nChild(l), 1}*v(:, treeData.ancestor(nChild(l), 1)) +...
                 v(:, nChild(l));
-            Z.U(:, nChild(l)) = dwnOptimModel.L*v(:, nChild(l)) + optionSolveStep.vhat(:, nChild(l));
-            Z.X(:, nChild(l) + 1) = dwnOptimModel.A*Z.X(:,kk) + dwnOptimModel.B*Z.U(:,nChild(l)) +...
+            dwnSmpcZvar.U(:, nChild(l)) = dwnOptimModel.L*v(:, nChild(l)) + optionSolveStep.vhat(:, nChild(l));
+            dwnSmpcZvar.X(:, nChild(l) + 1) = dwnOptimModel.A*dwnSmpcZvar.X(:,kk) + dwnOptimModel.B*dwnSmpcZvar.U(:,nChild(l)) +...
                 optionSolveStep.w(:, nChild(l));
         end
     end
