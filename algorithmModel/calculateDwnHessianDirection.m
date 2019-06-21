@@ -86,6 +86,9 @@ for iNode = 1:nNode - nLeave + 1
     else
         nChild = treeData.children{iNode-1};
         for l = 1:length(nChild)
+            %if( nChild(l) == 8)
+             %   nChild(l)
+            %end
             v(:, nChild(l)) = dwnFactorStepModel.K{nChild(l)}*v(:, treeData.ancestor(nChild(l))) +...
                 v(:, nChild(l));
             hessianDir.U(:, nChild(l)) = dwnOptimModel.L*v(:, nChild(l));

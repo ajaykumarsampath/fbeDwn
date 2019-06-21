@@ -24,17 +24,21 @@ lambda = optionDwnFbe.lambda;
 dwnSmpcFbeGrad.x = zeros(size(dwnOptimModel.F{1, 1}, 1), nNode);
 dwnSmpcFbeGrad.u = zeros(size(dwnOptimModel.G{1, 1}, 1), nNode);
 
+fbeHessianPrimalDir = dwnSmpcFbeGrad;
 dwnSmpcFbeHessianDir = calculateDwnHessianDirection(dwnOptimModel, treeData, dwnSmpcFbeResidual,...
     dwnFactorStepModel);
 
 for i = 1:nNode
+    fbeHessianPrimalDir.x(:, i) = dwnOptimModel.F{i, 1}*dwnSmpcFbeHessianDir.X(:, i + 1);
+    fbeHessianPrimalDir.u(:, i) = dwnOptimModel.G{i, 1}*dwnSmpcFbeHessianDir.U(:, i);
     dwnSmpcFbeGrad.x(:, i) = dwnSmpcFbeResidual.x(:, i) + lambda*dwnOptimModel.F{i, 1}*....
-        dwnSmpcFbeHessianDir.X(:, i);
+        dwnSmpcFbeHessianDir.X(:, i + 1);
     dwnSmpcFbeGrad.u(:, i) = dwnSmpcFbeResidual.u(:, i) + lambda*dwnOptimModel.G{i, 1}*...
         dwnSmpcFbeHessianDir.U(:, i);
 end 
 
 detailFbeGradient.fbeHessianDir = dwnSmpcFbeHessianDir;
+detailFbeGradient.fbeHessianPrimalDir = fbeHessianPrimalDir;
 
 end
 

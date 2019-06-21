@@ -58,7 +58,37 @@ optionLbfgsUpdate.invRho = lbfgsObject.vecInvRho(lbfgsObject.colLbfgs);
 lbfgsEnvDirMat = LBFGS(lbfgsObject.matS , lbfgsObject.matY, lbfgsObject.vecInvRho, lbfgsObject.H,...
     -gradIter, int32(lbfgsObject.colLbfgs), int32(lbfgsObject.memLbfgs));
 
+% implemente the two-loop recursive 
+mylbfgsEnvDirMat = -gradIter;
+lbfgsAlpha = zeros(1, lbfgsObject.memLbfgs);
+for iMemory = 1:lbfgsObject.memLbfgs
+    iCol = lbfgsObject.colLbfgs - iMemory + 1;
+    if(iCol <= 0)
+        iCol = iCol + lbfgsObject.memLbfgs;
+    end
+    lbfgsAlpha(iCol) = lbfgsObject.matS(:, iCol)'*mylbfgsEnvDirMat/lbfgsObject.vecInvRho(iCol);
+    mylbfgsEnvDirMat = mylbfgsEnvDirMat - lbfgsAlpha(iCol)*lbfgsObject.matY(:, iCol);
+end 
+%norm(mylbfgsEnvDirMat)
+mylbfgsEnvDirMat = lbfgsObject.H*mylbfgsEnvDirMat;
+%norm(mylbfgsEnvDirMat)
+for iMemory = lbfgsObject.memLbfgs:-1:1
+    iCol = lbfgsObject.colLbfgs - iMemory + 1;
+    if(iCol <= 0)
+        iCol = iCol + lbfgsObject.memLbfgs;
+    end
+    beta = lbfgsObject.matY(:, iCol)'*mylbfgsEnvDirMat/lbfgsObject.vecInvRho(iCol);
+    ll(iCol) = beta;
+    ll(iCol + lbfgsObject.memLbfgs) = lbfgsAlpha(iCol) - beta;
+    ll(iCol + 2*lbfgsObject.memLbfgs) = lbfgsObject.matY(:, iCol)'*mylbfgsEnvDirMat;
+    mylbfgsEnvDirMat = mylbfgsEnvDirMat + (lbfgsAlpha(iCol) - beta)*lbfgsObject.matS(:, iCol);
+end
+
+
 optionLbfgsUpdate.lbfgsObject = lbfgsObject;
+optionLbfgsUpdate.lbfgsEnvDirMat = lbfgsEnvDirMat;
+optionLbfgsUpdate.myLbfgsEnvDirMat = mylbfgsEnvDirMat;
+optionLbfgsUpdate.lbfgsAlpha = lbfgsAlpha;
 lbfgsEnvDirMat = reshape(lbfgsEnvDirMat, dimDualVar(1), dimDualVar(2)); 
 lbfgsEnvDir.x = lbfgsEnvDirMat(1:dimDualXvar(1), :);
 lbfgsEnvDir.u = lbfgsEnvDirMat(dimDualXvar(1) + 1:dimDualXvar(1) + dimDualUvar(1), :);

@@ -40,6 +40,7 @@ else
 end
 
 Wv1 = dwnOptimCost.Wu*dwnOptimModel.L;
+alphaPrice = zeros(nu, nStage);
 
 for k = 1:dwnOptimModel.Np
     nodesStage = find(treeData.stage==k-1);
@@ -49,7 +50,10 @@ for k = 1:dwnOptimModel.Np
     for j = 1:length(nodesStage)
         if(ALPHA_FLAG)
             ll = dwnOptimCost.alpha(k,:) + treeData.errorPrice(nodesStage(j), :);
+            alphaPrice(:, nodesStage(j)) = ll';
             alphaBar(:, nodesStage(j)) = (ll*dwnOptimModel.L)';
+        else 
+            alphaPrice(:, nodesStage(j)) = dwnOptimCost.alpha(k,:)'; 
         end
         w(:, nodesStage(j)) = dwnOptimModel.Gd*(treeData.value(nodesStage(j),:)' + currentDemand(k,:)');
         vhat(:, nodesStage(j)) = dwnOptimModel.L1*(currentDemand(k,:)' +...
@@ -98,6 +102,7 @@ end
 
 eliminateCurrentState = optionCurrentState;
 eliminateCurrentState.beta = beta;
+eliminateCurrentState.alphaPrice = alphaPrice;
 eliminateCurrentState.vhat = vhat;
 eliminateCurrentState.alpha_bar = alphaBar;
 eliminateCurrentState.w = w;
